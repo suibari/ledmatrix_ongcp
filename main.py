@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 import re
+from asari.api import Sonar
 
 def getNews():
     atcl_arr_new = []
@@ -43,11 +44,31 @@ def getTemperatureAndWeather():
     
     return [temp , weather]
 
+def applySentimentAnalysis(text_arr):
+    result = []
+    sonar = Sonar()
+    
+    for text in text_arr:
+        res = sonar.ping(text=text) # 感情分析実行
+        result.append(res)
+        
+        # 結果からネガポジ判定結果と数値のみを抜き出す
+        #top_class = res["top_class"]
+        #if (top_class == "positive"):
+        #    confidence = res["classes"][1]["confidence"]
+        #else:
+        #    confidence = res["classes"][0]["confidence"]
+        #result.append({"top_class": top_class, "confidence": confidence})
+    
+    return result
+
 def getNewsAndWeather(request):
     result = {}
     
     result["news"] = getNews()
-    result["temp"] = getTemperatureAndWeather()[0]
-    result["weather"] = getTemperatureAndWeather()[1]
+    result["news_sa"] = applySentimentAnalysis(result["news"])
+    weather = getTemperatureAndWeather()
+    result["temp"] = weather[0]
+    result["weather"] = weather[1]
     
     return result
